@@ -1,0 +1,81 @@
+.card-container {
+    background: #1B2A4A;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.description {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+}
+
+.sub-text {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8125rem;
+    font-style: italic;
+}
+
+.button-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    justify-content: flex-end;
+}
+
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 0;
+    position: relative;
+    min-height: 6rem;
+}
+
+.spinner-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8125rem;
+    margin-top: 3.5rem;
+}
+
+.result-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+}
+
+.result-success {
+    background: rgba(76, 175, 80, 0.15);
+}
+
+.result-error {
+    background: rgba(244, 67, 54, 0.15);
+}
+
+.result-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+}

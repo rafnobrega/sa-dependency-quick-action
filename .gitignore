@@ -1,0 +1,12 @@
+# Salesforce
+.sf/
+.sfdx/
+deploy-options.json
+
+# OS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
