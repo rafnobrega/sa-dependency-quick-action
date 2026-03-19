@@ -35,9 +35,21 @@ Salesforce tools for managing **Finish-to-Start (Complex Work)** dependencies be
 
 ## Deployment
 
-```bash
-sf project deploy start --source-dir force-app --target-org <your-org-alias>
-```
+1. **Clone the repo:**
+   ```bash
+   git clone https://github.com/rafnobrega/sa-dependency-quick-action.git
+   cd sa-dependency-quick-action
+   ```
+
+2. **Authorize your org** (skip if already connected):
+   ```bash
+   sf org login web --set-default --alias <your-org-alias>
+   ```
+
+3. **Deploy to your org:**
+   ```bash
+   sf project deploy start --source-dir force-app --target-org <your-org-alias>
+   ```
 
 ## Setup After Deployment
 
