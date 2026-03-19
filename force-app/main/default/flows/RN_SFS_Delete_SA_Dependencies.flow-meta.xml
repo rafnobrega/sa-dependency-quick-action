@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <assignments>
+        <name>Add_SA_Id_to_Collection</name>
+        <label>Add SA Id to Collection</label>
+        <description>Add current SA Id to the text collection for filtering dependencies.</description>
+        <locationX>176</locationX>
+        <locationY>350</locationY>
+        <assignmentItems>
+            <assignToReference>saIdCollection</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Loop_SAs.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_SAs</targetReference>
+        </connector>
+    </assignments>
+    <decisions>
+        <name>Has_Dependencies</name>
+        <label>Has Dependencies?</label>
+        <description>Check if any Time Dependency records were found for the Work Order.</description>
+        <locationX>176</locationX>
+        <locationY>566</locationY>
+        <defaultConnector>
+            <targetReference>No_Dependencies_Screen</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>No Dependencies</defaultConnectorLabel>
+        <rules>
+            <name>Yes_Dependencies</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>dependencyRecords</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Confirm_Delete_Screen</targetReference>
+            </connector>
+            <label>Yes</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Has_SAs</name>
+        <label>Has SAs?</label>
+        <description>Check if any Service Appointments exist for the selected Work Order.</description>
+        <locationX>176</locationX>
+        <locationY>242</locationY>
+        <defaultConnector>
+            <targetReference>No_Dependencies_Screen</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>No SAs</defaultConnectorLabel>
+        <rules>
+            <name>Yes_SAs</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>saRecords</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Loop_SAs</targetReference>
+            </connector>
+            <label>Yes</label>
+        </rules>
+    </decisions>
+    <description>Screen flow to select a Work Order and delete all FSL Time Dependency records for its Service Appointments.</description>
+    <environments>Default</environments>
+    <interviewLabel>RN SFS Delete SA Dependencies {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>RN SFS Delete SA Dependencies</label>
+    <loops>
+        <name>Loop_SAs</name>
+        <label>Loop SAs</label>
+        <description>Loop through Service Appointments to collect their Ids.</description>
+        <locationX>176</locationX>
+        <locationY>300</locationY>
+        <collectionReference>saRecords</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Add_SA_Id_to_Collection</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Get_Dependencies</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>Flow</processType>
+    <recordDeletes>
+        <name>Delete_Dependencies</name>
+        <label>Delete Dependencies</label>
+        <description>Delete all retrieved FSL Time Dependency records.</description>
+        <locationX>176</locationX>
+        <locationY>782</locationY>
+        <connector>
+            <targetReference>Success_Screen</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Error_Screen</targetReference>
+        </faultConnector>
+        <inputReference>dependencyRecords</inputReference>
+    </recordDeletes>
+    <recordLookups>
+        <name>Get_Service_Appointments</name>
+        <label>Get Service Appointments</label>
+        <description>Retrieve all Service Appointments for the selected Work Order.</description>
+        <locationX>176</locationX>
+        <locationY>190</locationY>
+        <connector>
+            <targetReference>Has_SAs</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>ParentRecordId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>selectedWorkOrderId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>ServiceAppointment</object>
+        <outputReference>saRecords</outputReference>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>false</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Dependencies</name>
+        <label>Get Dependencies</label>
+        <description>Retrieve all FSL Time Dependency records where the successor SA belongs to the selected Work Order.</description>
+        <locationX>176</locationX>
+        <locationY>458</locationY>
+        <connector>
+            <targetReference>Has_Dependencies</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>FSL__Service_Appointment_1__c</field>
+            <operator>In</operator>
+            <value>
+                <elementReference>saIdCollection</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>FSL__Time_Dependency__c</object>
+        <outputReference>dependencyRecords</outputReference>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>false</storeOutputAutomatically>
+    </recordLookups>
+    <runInMode>DefaultMode</runInMode>
+    <screens>
+        <name>Select_Work_Order_Screen</name>
+        <label>Select Work Order</label>
+        <description>User selects the Work Order whose SA dependencies should be deleted.</description>
+        <locationX>176</locationX>
+        <locationY>134</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <connector>
+            <targetReference>Get_Service_Appointments</targetReference>
+        </connector>
+        <nextOrFinishButtonLabel>Find Dependencies</nextOrFinishButtonLabel>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>WorkOrderLookup</name>
+            <extensionName>flowruntime:lookup</extensionName>
+            <fieldType>ComponentInstance</fieldType>
+            <inputParameters>
+                <name>fieldApiName</name>
+                <value>
+                    <stringValue>Id</stringValue>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>label</name>
+                <value>
+                    <stringValue>Work Order</stringValue>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>objectApiName</name>
+                <value>
+                    <stringValue>WorkOrder</stringValue>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>required</name>
+                <value>
+                    <booleanValue>true</booleanValue>
+                </value>
+            </inputParameters>
+            <isRequired>true</isRequired>
+            <outputParameters>
+                <assignToReference>selectedWorkOrderId</assignToReference>
+                <name>recordId</name>
+            </outputParameters>
+        </fields>
+    </screens>
+    <screens>
+        <name>Confirm_Delete_Screen</name>
+        <label>Confirm Delete</label>
+        <description>Shows user that dependencies were found and asks for confirmation before deleting.</description>
+        <locationX>176</locationX>
+        <locationY>674</locationY>
+        <allowBack>true</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <connector>
+            <targetReference>Delete_Dependencies</targetReference>
+        </connector>
+        <nextOrFinishButtonLabel>Delete All</nextOrFinishButtonLabel>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>ConfirmMessage</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;SA dependencies were found for this Work Order.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;Click &lt;b&gt;Delete All&lt;/b&gt; to remove them.&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+    <screens>
+        <name>No_Dependencies_Screen</name>
+        <label>No Dependencies Found</label>
+        <description>Informs user that no SA dependencies exist for the selected Work Order.</description>
+        <locationX>396</locationX>
+        <locationY>674</locationY>
+        <allowBack>true</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>NoDepsMessage</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;b&gt;No SA dependencies found&lt;/b&gt; for the selected Work Order.&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+    <screens>
+        <name>Success_Screen</name>
+        <label>Done</label>
+        <description>Confirms that all SA dependencies were successfully deleted.</description>
+        <locationX>176</locationX>
+        <locationY>890</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>SuccessMessage</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;span style=&quot;color: rgb(0, 128, 0);&quot;&gt;&lt;b&gt;All SA dependencies have been deleted successfully.&lt;/b&gt;&lt;/span&gt;&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+    <screens>
+        <name>Error_Screen</name>
+        <label>Error</label>
+        <description>Displays error details if the delete operation fails.</description>
+        <locationX>440</locationX>
+        <locationY>890</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>false</allowPause>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+        <fields>
+            <name>ErrorMessage</name>
+            <fieldType>DisplayText</fieldType>
+            <fieldText>&lt;p&gt;&lt;span style=&quot;color: rgb(255, 0, 0);&quot;&gt;&lt;b&gt;Error deleting dependencies:&lt;/b&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;{!$Flow.FaultMessage}&lt;/p&gt;</fieldText>
+        </fields>
+    </screens>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Select_Work_Order_Screen</targetReference>
+        </connector>
+    </start>
+    <status>Active</status>
+    <variables>
+        <name>selectedWorkOrderId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>saRecords</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>ServiceAppointment</objectType>
+    </variables>
+    <variables>
+        <name>saIdCollection</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>dependencyRecords</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>FSL__Time_Dependency__c</objectType>
+    </variables>
+</Flow>
