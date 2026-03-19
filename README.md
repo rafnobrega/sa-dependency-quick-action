@@ -1,14 +1,23 @@
 # SA Dependency Quick Action
 
-A Salesforce Quick Action that automatically creates **Finish-to-Start (Complex Work)** dependencies between all Service Appointments under a Work Order.
+Salesforce tools for managing **Finish-to-Start (Complex Work)** dependencies between Service Appointments under a Work Order — create them automatically via Quick Action, and delete them via Screen Flow.
 
 ## What It Does
+
+### Create SA Dependencies (LWC Quick Action)
 
 - Queries all Service Appointments under a Work Order (via WOLIs)
 - Orders them by `EarliestStartTime ASC`
 - Creates `FSL__Time_Dependency__c` records chaining them sequentially (SA1 → SA2 → SA3 → ...)
 - Splits into chains of **max 5 SAs** to avoid the FSL GetCandidates limitation
 - **Deletes and recreates** dependencies if they already exist
+
+### Delete SA Dependencies (Screen Flow)
+
+- Pick any Work Order via lookup
+- Finds all `FSL__Time_Dependency__c` records linked to that Work Order's Service Appointments
+- Confirmation screen before deleting
+- Error handling with fault message display
 
 ## Components
 
@@ -17,6 +26,7 @@ A Salesforce Quick Action that automatically creates **Finish-to-Start (Complex 
 | `SADependencyController.cls` | Apex controller — queries SAs, manages dependency chain creation |
 | `SADependencyControllerTest.cls` | Test class with 100% coverage |
 | `createSADependencies/` | LWC Quick Action — confirmation screen with spinner and result display |
+| `RN_SFS_Delete_SA_Dependencies.flow-meta.xml` | Screen Flow — select a Work Order and delete all its SA dependencies |
 
 ## Prerequisites
 
@@ -31,6 +41,8 @@ sf project deploy start --source-dir force-app --target-org <your-org-alias>
 
 ## Setup After Deployment
 
+### Create SA Dependencies (Quick Action)
+
 1. **Create a Quick Action** on the WorkOrder object:
    - Object: `WorkOrder`
    - Action Type: `Lightning Web Component`
@@ -38,6 +50,13 @@ sf project deploy start --source-dir force-app --target-org <your-org-alias>
    - Label: `Create SA Dependencies`
 2. **Add the Quick Action** to the Work Order page layout (Mobile & Lightning Actions section)
 3. Navigate to a Work Order with 2+ Service Appointments and run the action
+
+### Delete SA Dependencies (Screen Flow)
+
+The flow deploys as **Active** — no additional setup required. To run it:
+
+- **Setup > Flows > RN SFS Delete SA Dependencies > Run**, or
+- Add it to a **Utility Bar**, **Lightning page**, or **custom button** for quick access
 
 ## FSL Field Mapping Gotcha
 
