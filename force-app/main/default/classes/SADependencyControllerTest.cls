@@ -32,7 +32,7 @@ private class SADependencyControllerTest {
         WorkOrder wo = [SELECT Id FROM WorkOrder WHERE Subject = 'Dependency Test WO' LIMIT 1];
 
         Test.startTest();
-        String result = SADependencyController.createDependencies(wo.Id);
+        String result = SADependencyController.createDependencies(wo.Id, true);
         Test.stopTest();
 
         System.assert(result.contains('Created 3 dependencies'), 'Should create 3 dependencies for 4 SAs. Got: ' + result);
@@ -75,7 +75,7 @@ private class SADependencyControllerTest {
         insert sa;
 
         Test.startTest();
-        String result = SADependencyController.createDependencies(wo.Id);
+        String result = SADependencyController.createDependencies(wo.Id, true);
         Test.stopTest();
 
         System.assert(result.contains('Need at least 2'), 'Should return insufficient SAs message. Got: ' + result);
@@ -85,13 +85,13 @@ private class SADependencyControllerTest {
     static void testDeleteAndRecreate() {
         WorkOrder wo = [SELECT Id FROM WorkOrder WHERE Subject = 'Dependency Test WO' LIMIT 1];
 
-        SADependencyController.createDependencies(wo.Id);
+        SADependencyController.createDependencies(wo.Id, true);
 
         List<FSL__Time_Dependency__c> firstRun = [SELECT Id FROM FSL__Time_Dependency__c];
         System.assertEquals(3, firstRun.size(), 'First run should create 3 deps');
 
         Test.startTest();
-        String result = SADependencyController.createDependencies(wo.Id);
+        String result = SADependencyController.createDependencies(wo.Id, true);
         Test.stopTest();
 
         List<FSL__Time_Dependency__c> secondRun = [SELECT Id FROM FSL__Time_Dependency__c];
@@ -104,7 +104,7 @@ private class SADependencyControllerTest {
         WorkOrder wo = [SELECT Id FROM WorkOrder WHERE Subject = 'Dependency Test WO' LIMIT 1];
 
         Test.startTest();
-        SADependencyController.createDependencies(wo.Id);
+        SADependencyController.createDependencies(wo.Id, true);
         Test.stopTest();
 
         ServiceAppointment firstSA = [
@@ -152,7 +152,7 @@ private class SADependencyControllerTest {
         insert sas;
 
         Test.startTest();
-        String result = SADependencyController.createDependencies(wo.Id);
+        String result = SADependencyController.createDependencies(wo.Id, true);
         Test.stopTest();
 
         System.assert(result.contains('2 chain(s)'), 'Should split into 2 chains. Got: ' + result);
@@ -169,5 +169,82 @@ private class SADependencyControllerTest {
             rootIds.add(dep.FSL__Root_Service_Appointment__c);
         }
         System.assertEquals(2, rootIds.size(), 'Should have 2 different root SAs for 2 chains');
+    }
+
+    @IsTest
+    static void testWoLevelSAsOnly() {
+        WorkOrder wo = new WorkOrder(Subject = 'WO Level SA Test');
+        insert wo;
+
+        List<ServiceAppointment> sas = new List<ServiceAppointment>();
+        for (Integer i = 0; i < 3; i++) {
+            sas.add(new ServiceAppointment(
+                ParentRecordId = wo.Id,
+                EarliestStartTime = DateTime.now().addDays(i),
+                DueDate = DateTime.now().addDays(i + 1)
+            ));
+        }
+        insert sas;
+
+        Test.startTest();
+        String result = SADependencyController.createDependencies(wo.Id, false);
+        Test.stopTest();
+
+        System.assert(result.contains('Created 2 dependencies'), 'Should create 2 deps for 3 WO-level SAs. Got: ' + result);
+
+        List<FSL__Time_Dependency__c> deps = [SELECT Id FROM FSL__Time_Dependency__c];
+        System.assertEquals(2, deps.size(), 'Should have 2 dependency records');
+    }
+
+    @IsTest
+    static void testCombinedWoAndWoliSAs() {
+        WorkOrder wo = new WorkOrder(Subject = 'Combined SA Test');
+        insert wo;
+
+        // 2 SAs parented to WO
+        List<ServiceAppointment> woSas = new List<ServiceAppointment>();
+        for (Integer i = 0; i < 2; i++) {
+            woSas.add(new ServiceAppointment(
+                ParentRecordId = wo.Id,
+                EarliestStartTime = DateTime.now().addDays(i),
+                DueDate = DateTime.now().addDays(i + 1)
+            ));
+        }
+        insert woSas;
+
+        // 2 SAs parented to WOLIs
+        List<WorkOrderLineItem> wolis = new List<WorkOrderLineItem>();
+        for (Integer i = 0; i < 2; i++) {
+            wolis.add(new WorkOrderLineItem(
+                WorkOrderId = wo.Id,
+                Duration = 1.0,
+                DurationType = 'Hours'
+            ));
+        }
+        insert wolis;
+
+        List<ServiceAppointment> woliSas = new List<ServiceAppointment>();
+        for (Integer i = 0; i < 2; i++) {
+            woliSas.add(new ServiceAppointment(
+                ParentRecordId = wolis[i].Id,
+                EarliestStartTime = DateTime.now().addDays(i + 2),
+                DueDate = DateTime.now().addDays(i + 3)
+            ));
+        }
+        insert woliSas;
+
+        // includeWoliSAs = false — should only get 2 WO-level SAs
+        Test.startTest();
+        String woOnly = SADependencyController.createDependencies(wo.Id, false);
+        Test.stopTest();
+
+        System.assert(woOnly.contains('Created 1 dependencies'), 'WO-only should create 1 dep for 2 SAs. Got: ' + woOnly);
+
+        // Clean up deps for next call
+        delete [SELECT Id FROM FSL__Time_Dependency__c];
+
+        // includeWoliSAs = true — should get all 4 SAs
+        String combined = SADependencyController.createDependencies(wo.Id, true);
+        System.assert(combined.contains('Created 3 dependencies'), 'Combined should create 3 deps for 4 SAs. Got: ' + combined);
     }
 }

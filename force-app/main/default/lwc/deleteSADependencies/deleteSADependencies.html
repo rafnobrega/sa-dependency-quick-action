@@ -2,25 +2,25 @@
     <div class="card-container">
         <div class="card-header">
             <lightning-icon icon-name="standard:service_appointment" size="small"></lightning-icon>
-            <span class="header-title">Create SA Dependencies</span>
+            <span class="header-title">Delete SA Dependencies</span>
         </div>
         <div class="card-body">
             <template lwc:if={showConfirmation}>
                 <p class="description">
-                    Create sequential <strong>Finish-to-Start</strong> dependencies for Service Appointments on this Work Order, ordered by Earliest Start Permitted.
+                    Delete all <strong>Time Dependencies</strong> for Service Appointments on this Work Order.
                 </p>
                 <label class="checkbox-row">
                     <input type="checkbox" checked={includeWoliSAs} onchange={handleToggleWoli} />
                     <span class="checkbox-label">Include Service Appointments from Work Order Line Items</span>
                 </label>
                 <p class="description sub-text">
-                    Existing dependencies will be removed and recreated.
+                    This action cannot be undone.
                 </p>
                 <div class="button-row">
                     <lightning-button
-                        label="Create Dependencies"
-                        variant="brand"
-                        onclick={handleCreate}>
+                        label="Delete Dependencies"
+                        variant="destructive"
+                        onclick={handleDelete}>
                     </lightning-button>
                     <lightning-button
                         label="Cancel"
@@ -31,8 +31,8 @@
 
             <template lwc:if={isProcessing}>
                 <div class="spinner-container">
-                    <lightning-spinner alternative-text="Creating dependencies..." size="medium"></lightning-spinner>
-                    <p class="spinner-text">Creating dependencies...</p>
+                    <lightning-spinner alternative-text="Deleting dependencies..." size="medium"></lightning-spinner>
+                    <p class="spinner-text">Deleting dependencies...</p>
                 </div>
             </template>
 

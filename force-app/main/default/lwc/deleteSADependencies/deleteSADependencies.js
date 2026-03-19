@@ -1,8 +1,8 @@
 import { LightningElement, api } from 'lwc';
 import { CloseActionScreenEvent } from 'lightning/actions';
-import createDependencies from '@salesforce/apex/SADependencyController.createDependencies';
+import deleteDependencies from '@salesforce/apex/SADependencyController.deleteDependencies';
 
-export default class CreateSADependencies extends LightningElement {
+export default class DeleteSADependencies extends LightningElement {
     @api recordId;
 
     isProcessing = false;
@@ -15,10 +15,10 @@ export default class CreateSADependencies extends LightningElement {
         this.includeWoliSAs = event.target.checked;
     }
 
-    handleCreate() {
+    handleDelete() {
         this.isProcessing = true;
 
-        createDependencies({ workOrderId: this.recordId, includeWoliSAs: this.includeWoliSAs })
+        deleteDependencies({ workOrderId: this.recordId, includeWoliSAs: this.includeWoliSAs })
             .then(result => {
                 this.resultMessage = result;
                 this.isError = false;

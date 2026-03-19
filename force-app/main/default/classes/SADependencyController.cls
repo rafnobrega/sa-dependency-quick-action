@@ -1,13 +1,19 @@
 public with sharing class SADependencyController {
 
     @AuraEnabled
-    public static String createDependencies(Id workOrderId) {
+    public static String createDependencies(Id workOrderId, Boolean includeWoliSAs) {
+        Set<Id> parentIds = new Set<Id>{ workOrderId };
+
+        if (includeWoliSAs == true) {
+            for (WorkOrderLineItem woli : [SELECT Id FROM WorkOrderLineItem WHERE WorkOrderId = :workOrderId]) {
+                parentIds.add(woli.Id);
+            }
+        }
+
         List<ServiceAppointment> sas = [
             SELECT Id, AppointmentNumber, EarliestStartTime
             FROM ServiceAppointment
-            WHERE ParentRecordId IN (
-                SELECT Id FROM WorkOrderLineItem WHERE WorkOrderId = :workOrderId
-            )
+            WHERE ParentRecordId IN :parentIds
             ORDER BY EarliestStartTime ASC
         ];
 
@@ -52,5 +58,40 @@ public with sharing class SADependencyController {
         insert newDeps;
 
         return 'Created ' + newDeps.size() + ' dependencies across ' + sas.size() + ' Service Appointments in ' + totalChains + ' chain(s) of up to ' + chainSize + '.';
+    }
+
+    @AuraEnabled
+    public static String deleteDependencies(Id workOrderId, Boolean includeWoliSAs) {
+        Set<Id> parentIds = new Set<Id>{ workOrderId };
+
+        if (includeWoliSAs == true) {
+            for (WorkOrderLineItem woli : [SELECT Id FROM WorkOrderLineItem WHERE WorkOrderId = :workOrderId]) {
+                parentIds.add(woli.Id);
+            }
+        }
+
+        Set<Id> saIds = new Set<Id>();
+        for (ServiceAppointment sa : [SELECT Id FROM ServiceAppointment WHERE ParentRecordId IN :parentIds]) {
+            saIds.add(sa.Id);
+        }
+
+        if (saIds.isEmpty()) {
+            return 'No Service Appointments found on this Work Order.';
+        }
+
+        List<FSL__Time_Dependency__c> deps = [
+            SELECT Id FROM FSL__Time_Dependency__c
+            WHERE FSL__Service_Appointment_1__c IN :saIds
+            OR FSL__Service_Appointment_2__c IN :saIds
+        ];
+
+        if (deps.isEmpty()) {
+            return 'No dependencies found to delete.';
+        }
+
+        Integer count = deps.size();
+        delete deps;
+
+        return 'Deleted ' + count + ' dependencies across ' + saIds.size() + ' Service Appointments.';
     }
 }
