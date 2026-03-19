@@ -26,6 +26,7 @@ Salesforce tools for managing **Finish-to-Start (Complex Work)** dependencies be
 | `SADependencyController.cls` | Apex controller — queries SAs, manages dependency chain creation |
 | `SADependencyControllerTest.cls` | Test class with 100% coverage |
 | `createSADependencies/` | LWC Quick Action — confirmation screen with spinner and result display |
+| `WorkOrder.Create_SA_Dependencies.quickAction-meta.xml` | Quick Action definition — wires the LWC to the Work Order object |
 | `RN_SFS_Delete_SA_Dependencies.flow-meta.xml` | Screen Flow — select a Work Order and delete all its SA dependencies |
 
 ## Prerequisites
@@ -55,13 +56,8 @@ Salesforce tools for managing **Finish-to-Start (Complex Work)** dependencies be
 
 ### Create SA Dependencies (Quick Action)
 
-1. **Create a Quick Action** on the WorkOrder object:
-   - Object: `WorkOrder`
-   - Action Type: `Lightning Web Component`
-   - Lightning Web Component: `c:createSADependencies`
-   - Label: `Create SA Dependencies`
-2. **Add the Quick Action** to the Work Order page layout (Mobile & Lightning Actions section)
-3. Navigate to a Work Order with 2+ Service Appointments and run the action
+1. **Add the Quick Action** to the Work Order Lightning Record Page (Highlights Panel or Mobile & Lightning Actions section)
+2. Navigate to a Work Order with 2+ Service Appointments and run the action
 
 ### Delete SA Dependencies (Screen Flow)
 
