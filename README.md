@@ -39,6 +39,19 @@ sf project deploy start --source-dir force-app --target-org <your-org-alias>
 2. **Add the Quick Action** to the Work Order page layout (Mobile & Lightning Actions section)
 3. Navigate to a Work Order with 2+ Service Appointments and run the action
 
+## FSL Field Mapping Gotcha
+
+The `FSL__Time_Dependency__c` field names are counterintuitive. In the Complex Work UI, "First Appointment" and "Second Appointment" do **not** mean predecessor and successor:
+
+| Field | UI Label | Actual Role |
+|-------|----------|-------------|
+| `FSL__Service_Appointment_1__c` | First Appointment | **Successor** — the SA that *waits* |
+| `FSL__Service_Appointment_2__c` | Second Appointment | **Predecessor** — the SA that *goes first* |
+
+For a **Start After Finish** dependency: *SA1 starts after SA2 finishes.*
+
+This component handles the mapping correctly — just be aware of it if you're inspecting or creating dependency records manually.
+
 ## How Chain Splitting Works
 
 FSL's GetCandidates API has a limit of **5 Service Appointments per dependency chain**. This component automatically splits larger groups:
