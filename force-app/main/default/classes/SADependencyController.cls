@@ -40,8 +40,8 @@ public with sharing class SADependencyController {
 
             for (Integer i = startIdx; i < endIdx - 1; i++) {
                 newDeps.add(new FSL__Time_Dependency__c(
-                    FSL__Service_Appointment_1__c = sas[i].Id,
-                    FSL__Service_Appointment_2__c = sas[i + 1].Id,
+                    FSL__Service_Appointment_1__c = sas[i + 1].Id,
+                    FSL__Service_Appointment_2__c = sas[i].Id,
                     FSL__Dependency__c = 'Start After Finish',
                     FSL__Root_Service_Appointment__c = rootSaId,
                     FSL__Same_Resource__c = false
