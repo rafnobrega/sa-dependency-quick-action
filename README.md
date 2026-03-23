@@ -2,6 +2,9 @@
 
 Salesforce Quick Actions for managing **Finish-to-Start (Complex Work)** dependencies between Service Appointments under a Work Order — create and delete them directly from the Work Order record page.
 
+<img width="895" height="660" alt="Untitled-1" src="https://github.com/user-attachments/assets/7a37ac2e-85fa-4520-9777-85c42746acf4" />
+
+
 ## What It Does
 
 ### Create SA Dependencies (LWC Quick Action)
